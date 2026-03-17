@@ -1,0 +1,23 @@
+# Sensitive env files
+.env
+.env.*
+!.env.example
+
+# Local IDE settings
+.idea/
+.vscode/
+*.iml
+
+# Build artifacts
+**/target/
+**/node_modules/
+
+# Runtime logs
+*.log
+logs/
+
+# Secrets and keys
+*.pem
+*.key
+*.p12
+*.jks

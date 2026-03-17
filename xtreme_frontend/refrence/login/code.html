@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ff6600",
+              "background-light": "#f8f7f5",
+              "background-dark": "#23170f",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>Xtreme-Shop | 登录</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4">
+<!-- Logo Section -->
+<div class="mb-10 flex flex-col items-center text-center">
+<div class="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-4xl">bolt</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Xtreme-Shop</h1>
+<p class="mt-2 text-primary font-medium tracking-wide">极致秒杀 · 极速体验</p>
+</div>
+<!-- Login Card -->
+<div class="w-full max-w-[440px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8 shadow-sm">
+<form action="#" class="space-y-6">
+<!-- Phone Number -->
+<div class="space-y-2">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-none">
+                        手机号
+                    </label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">smartphone</span>
+<input class="flex h-12 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 pl-11 pr-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="请输入手机号" type="tel"/>
+</div>
+</div>
+<!-- Password -->
+<div class="space-y-2">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-none">
+                        密码
+                    </label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">lock</span>
+<input class="flex h-12 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 pl-11 pr-11 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="请输入密码" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember Me & Forgot Password -->
+<div class="flex items-center justify-between">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent transition-all" type="checkbox"/>
+<span class="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">记住我</span>
+</label>
+<a class="text-sm text-primary hover:underline font-medium" href="#">忘记密码？</a>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-12 rounded-lg bg-primary text-white font-bold text-lg hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-[0.98]" type="submit">
+                    登录
+                </button>
+</form>
+<!-- Footer Links -->
+<div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
+<p class="text-slate-500 dark:text-slate-400 text-sm">
+                    还没有账号？ 
+                    <a class="text-primary font-bold hover:underline ml-1" href="#">注册账号</a>
+</p>
+</div>
+</div>
+<!-- Abstract Decorative Background (Optional visual flair) -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-20">
+<div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px]"></div>
+<div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px]"></div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: xtreme_server
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+knife4j:
+  enable: true

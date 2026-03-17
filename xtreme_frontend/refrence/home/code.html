@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6600",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#23170f",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 lg:px-20 py-3">
+<div class="max-w-7xl mx-auto flex items-center justify-between gap-8">
+<!-- Logo -->
+<div class="flex items-center gap-2">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined text-2xl">bolt</span>
+</div>
+<h1 class="text-2xl font-bold tracking-tight text-primary">Xtreme-Shop</h1>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-xl">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary/50 text-sm" placeholder="搜索心仪商品..." type="text"/>
+</div>
+</div>
+<!-- Nav Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">秒杀专区</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">数码</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">服饰</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">食品</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="relative p-2 rounded-full border border-primary/30 text-primary hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex items-center gap-3">
+<img class="h-10 w-10 rounded-full border-2 border-primary/20" data-alt="User profile avatar circle image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9YuUJI3HDp7uTQJW7bGOu3JAbUHHIaS5gF4uWQkD2r2HTLuvB6BTuu5ul57ysR9PLggOtiBMcom-3DPbP2LIxmJcqwhZsKZV9RYT0rOlbWHcATFjdBFdp3yRH8aZqa16HtPLm0kD5v_pIy0P852NcQGaL9RprY4V9TByhm8MdxWS5HLXrIOQLhwVhLrr1xfsaHcl3TtFomga2FMkmKTjySVaIi2xarsPWxA6SRIH0H3BBuOkyX2UVGl9dWhcr6m2sjOasUSPQWf8"/>
+<a class="text-xs font-semibold text-slate-500 hover:text-primary" href="#">Logout</a>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 lg:px-20 py-8 space-y-8">
+<!-- Flash Sale Section -->
+<section class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+<div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-50 dark:border-slate-800">
+<div class="flex items-center gap-4">
+<div class="bg-primary/10 px-3 py-1 rounded text-primary font-bold flex items-center gap-2">
+<span class="material-symbols-outlined scale-75">timer</span>
+                        限时秒杀
+                    </div>
+<h2 class="text-lg font-bold">距离本场秒杀结束还有</h2>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-primary text-white font-bold text-2xl px-3 py-1.5 rounded-lg shadow-sm">01</div>
+<span class="text-primary font-bold text-xl">:</span>
+<div class="bg-primary text-white font-bold text-2xl px-3 py-1.5 rounded-lg shadow-sm">45</div>
+<span class="text-primary font-bold text-xl">:</span>
+<div class="bg-primary text-white font-bold text-2xl px-3 py-1.5 rounded-lg shadow-sm">30</div>
+</div>
+</div>
+<!-- Horizontal Flash Sale Items -->
+<div class="flex overflow-x-auto no-scrollbar gap-6 p-6">
+<!-- Flash Card 1 -->
+<div class="min-w-[240px] flex-shrink-0 group">
+<div class="relative aspect-square rounded-xl overflow-hidden mb-3">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Premium minimalist wrist watch product photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0m20emeaFQdblRtz51wbpdc_lOsl04MMpVNAcsyi4ox7UJ_Jm1h2UdAYvyRThbCxI-f6FjS2OEplhIYqE4ALWaijHL0Wc9MoyvubANI83dq-OSWKpWbQA4Ofg9Odg4NC50N8fGY1--GfdygcJHQIoeZLVlrxZIS9zVOWBIvg5DNEqF_4fifk9dlT4BByF591lNo-r_Vq5NhlDe8HTzrlQumr1j5UfPuW7vjoTI4ng3EteSn5xRt7gSIUH61Ld8vTNjrftZ0JCUsU"/>
+<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">50% OFF</div>
+</div>
+<h3 class="font-medium text-sm mb-1 truncate">高端极简智能腕表</h3>
+<div class="flex items-baseline gap-2 mb-3">
+<span class="text-primary text-xl font-bold">￥1,299</span>
+<span class="text-slate-400 text-sm line-through">￥2,599</span>
+</div>
+<button class="w-full bg-primary text-white py-2 rounded-lg font-bold text-sm hover:bg-primary/90 shadow-md shadow-primary/20">立即抢购</button>
+</div>
+<!-- Flash Card 2 -->
+<div class="min-w-[240px] flex-shrink-0 group">
+<div class="relative aspect-square rounded-xl overflow-hidden mb-3">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="High quality studio headphones on stand" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMMTXjW4pcw6zKo66ERGernTpPAQoIBzk6Q9iHoeANthtXBmAJVYrOCUcAIEQ6VrwKChYp7yH28gareVomeeHXHDVSSNehopNG7Y45HsckdjKzlBpm2A1UJs1lsvUYyxMgIyjBiLiJZIrNx4bs5hp0K3JT-tIElIH2uVNLAc6HTFJyGlZ7BZMRswrAayqPW24EAzJDb1o1-VF--GmS2EkT4BCNof7QCixLpSfQJdkgCmBghbsse2RNDkVUb7E0OfOerXeIimMnkVY"/>
+<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">30% OFF</div>
+</div>
+<h3 class="font-medium text-sm mb-1 truncate">无线降噪HIFI耳机</h3>
+<div class="flex items-baseline gap-2 mb-3">
+<span class="text-primary text-xl font-bold">￥899</span>
+<span class="text-slate-400 text-sm line-through">￥1,280</span>
+</div>
+<button class="w-full bg-primary text-white py-2 rounded-lg font-bold text-sm hover:bg-primary/90 shadow-md shadow-primary/20">立即抢购</button>
+</div>
+<!-- Flash Card 3 -->
+<div class="min-w-[240px] flex-shrink-0 group">
+<div class="relative aspect-square rounded-xl overflow-hidden mb-3">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Classic red running sneakers studio shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwE3Crmz71YZ8geUSFLAsVR0tGnpkozRgrhcOPE9nmNScs8g6gdpfFwSsSYA9PMN5UTrxrKrXtb_SPaz5NCAiQpTmH5V6tDZ7klTVdOvimIdmiHeJNjmqQNkGFkwk63y9JCs1Oc7n99uK-JLXkRmGpmC35VZx4gL6kmtCAipAghLZOi2gSmWKDezm2_6e5bDyl29dIRB3j8wu7dbrQxLnaSEQ_la3yTeS-DYVvSZ5KUJyIeuNFG-PMv6TauxzK98br28eb4IKTKmg"/>
+<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">HOT</div>
+</div>
+<h3 class="font-medium text-sm mb-1 truncate">极速运动跑鞋系列</h3>
+<div class="flex items-baseline gap-2 mb-3">
+<span class="text-primary text-xl font-bold">￥459</span>
+<span class="text-slate-400 text-sm line-through">￥799</span>
+</div>
+<button class="w-full bg-primary text-white py-2 rounded-lg font-bold text-sm hover:bg-primary/90 shadow-md shadow-primary/20">立即抢购</button>
+</div>
+<!-- Flash Card 4 -->
+<div class="min-w-[240px] flex-shrink-0 group">
+<div class="relative aspect-square rounded-xl overflow-hidden mb-3">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Professional DSLR camera body only" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARb3fMKKX7rGUerCCEQN_nJlBY2HgOd6DAZnujTm9RpGCqJJC7dsZz9BDW1AOhV8CB_9y_khsEI9buOHb68d66kAatq_MsjkIXr_LaHrvFvpz-Zv4TZFs8WIaNWKRgHompdsUdJQYL7fmnIcMhUxtwE-j8k9NhClAiQ5Du-tXal_l-C76eevsewSMSk6lBtWrjQcRaudYGXXaY8YGgeCPM5OwSzuwNxKE9RxRNpu-Xgitsg-sEksZqNx_SLQhIjAhxEcPi-O7tdss"/>
+<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">SAVE ￥1000</div>
+</div>
+<h3 class="font-medium text-sm mb-1 truncate">专业全画幅单反相机</h3>
+<div class="flex items-baseline gap-2 mb-3">
+<span class="text-primary text-xl font-bold">￥8,999</span>
+<span class="text-slate-400 text-sm line-through">￥9,999</span>
+</div>
+<button class="w-full bg-primary text-white py-2 rounded-lg font-bold text-sm hover:bg-primary/90 shadow-md shadow-primary/20">立即抢购</button>
+</div>
+<!-- Flash Card 5 -->
+<div class="min-w-[240px] flex-shrink-0 group">
+<div class="relative aspect-square rounded-xl overflow-hidden mb-3">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Minimalist black and white sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANw2FdUPbXVNHHE57C2zYwbrpht7JqcVZnvPE8F758glYUgXWctYlbUjzrVA5kLUYcxBeEYkvEpvlDWt8aTaLzCmkabdbgnTJN_EsY88TfEQhn97DBoyY-TeFVWEFgkhNTq8GqFEn9G2r6EZXwn_QQSqMmDhIA8_yffyleDZMxGsPtIaDI1AAsDJ-PZNHfcNL3pgcaMA5eFOnctEpzZw62ycJWnPo19fJGaAMzMHUYHLeJrq3B7RuK0tntsXyC_DjuFgqYtw-Bjc4"/>
+<div class="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">LOWEST</div>
+</div>
+<h3 class="font-medium text-sm mb-1 truncate">黑白复古潮酷板鞋</h3>
+<div class="flex items-baseline gap-2 mb-3">
+<span class="text-primary text-xl font-bold">￥299</span>
+<span class="text-slate-400 text-sm line-through">￥599</span>
+</div>
+<button class="w-full bg-primary text-white py-2 rounded-lg font-bold text-sm hover:bg-primary/90 shadow-md shadow-primary/20">立即抢购</button>
+</div>
+</div>
+</section>
+<!-- Main Content Area -->
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Sidebar -->
+<aside class="w-full lg:w-64 flex-shrink-0 space-y-2">
+<div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl">
+<h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 px-2">全部分类</h3>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary text-white font-bold" href="#">
+<span class="material-symbols-outlined">star</span>
+<span>为您推荐</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">smartphone</span>
+<span>手机数码</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">tv</span>
+<span>家用电器</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">laptop_mac</span>
+<span>电脑办公</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">health_and_beauty</span>
+<span>美妆护肤</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span>食品饮料</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">styler</span>
+<span>男装女装</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">sports_basketball</span>
+<span>运动户外</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Product Grid -->
+<div class="flex-1">
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Product card generator loop simulation -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Smartphone display mockup with abstract background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1koJwCv64wrR9j0oJwxC-fTT8ZKwDa7E3PEoG_zU4eojtq_oAgnHeaO07zZntuTq1QERRi20_f8O9XR4uiIF2p27wKIsvPvRPB8-pKVpj7Ns_RLygNmq4tmnkHVe0J_SbJTs6gbjafUEurz89SmN1HZQTOogKRz9PLcHDHOy7ztiq43KAh44D5q9EHPY10I3q0Z1W0TTP2kVQm0ccDeEBIxiRSgrHoA4Y1uAuMqVXLCmZjoV1p3TgRIIv0eykkjH04PDDAeDoCpc"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">旗舰级 5G 智能手机 超大屏长续航</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥4,999</span>
+<span class="text-[10px] text-slate-400 mt-1">1.2万+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="High performance business laptop open on desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6jEd06EqzI4wb-bXN3v9TvvgvHYLApdooKRjfNTyBjWPsCFTJG11-qNNsgzbfFd_ejFVEvF7rmB-fFqYYr4eebBkejPdHvCzu5lGDgELSBy1Pr1UZDjMTGJZmRpaeI8Kk0bPm_iDKOzXsfWj15WVQn8oRhvvrmIW2Vm-3asUiG8f0PctPO9IBuXWHEia7Sw4JAtyuQJuOU37I57ezcuyv1yjx28ud2VQ-amrRRuYYlcgGp-07eC62E0YUSOecsWrdk7X7bXTxKe8"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">商务办公轻薄本 高效处理多任务</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥6,588</span>
+<span class="text-[10px] text-slate-400 mt-1">5000+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Classic white cotton t-shirt flat lay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr4zmLEw1usKvwAtZF2jTdn_74LV5TGIBGYBzJZ8s7Suwvy0L6rTAnHHmmzdI-4Xvvk1t1JL-49eQVlcdhR47imovRkSUiupxSLsH2eaCGubhdjxAdSSYyD3XXPhvDHxMRqM8YMSFHOdWvgBZ4iG0wlDqXDbt3wHVzsHptAvDw1bBR6RkP7xidSgKYy2rbv9sYUMum0u1SW29pMN8xYhs7U3Z1tE1BN2uc57RdNmtw57KCkAJ73V8WH9Fo3SAs9OqTPwFWiZPd6b4"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">舒适透气基础款 纯棉白色T恤</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥89</span>
+<span class="text-[10px] text-slate-400 mt-1">2.5万+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Fresh colorful healthy salad bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-9Kfsq5ex_RlFrYz06O7QFUCBk24YoWcrxUg60h-HCX6vN8ZZJsIhi-hNHm5TI4wZ6FtLuo6YeDKrAYgqmSbMEYcJngDf4wPohs4PuKT8tv1dTu3LbNCH1CiycvefVwW-U6Rpk4GK0eavrAKBK0BxIPfG53BJ24AwxGsmys5fn_vLKK0zHko6O2DtwaENgta2xAJvWTf9UGeJWTWL9V0WnGNHmPZraBLtO08NO6lvpoqPqMNYtXqaUBqCsrB0UhcrNV3tg0jbzDo"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">健康轻食能量餐 新鲜食材每日直供</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥32</span>
+<span class="text-[10px] text-slate-400 mt-1">8000+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Over-ear headphones close up detail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGs7T3GUJ5ZbYiR1YpfQ7F-6kEMEfWjMnPQBSB9mqAlMKmvCC49S8f0mQfpTiEhnFAjVoVms1TS-eqsFZwsMT6QND0zAT68ewuJ4jSNqceeUJh5w0PRqM6FOkCukwBCQCrwl4cBiNKOET2D-JTOapGwkWNHiGwNwVCuuZYp_3IgwGlZVUVyNswRhdYFr7ZzL6CDzTSxJK5kt1MY_dWbWwJBPdr9S71v026pd-pcHPuPmzFRSibT7ru2411PyhJHWdbH9mk4BtZg_0"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">沉浸式音效 无线蓝牙耳罩耳机</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥499</span>
+<span class="text-[10px] text-slate-400 mt-1">1.8万+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Modern tablet with stylus pencil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqIouROMdCCw36dyfBkDOO2skV2nluWbyvpGU90UU39AjXK0XrcoPoVikprABJmeFopX3KlEL73FrqvoxrbxRGAJy5dXIEHDse3fWqLFzm11ISECwQYzWz5LDrG2HL-4lxVlUC9QtFI1FQW4h-bOsK5LAOERfYbFd0TGfpbQjJTgEKOypXkODcUmstxamoqw6JbVIdgr4j6mddVt9c0rvTLed7pK9drTVYeTS957jB9saNqz-g2MHi_IEKhftzulZXghI4j2IB5Ts"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">创作生产力平板 灵感随时记录</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥3,299</span>
+<span class="text-[10px] text-slate-400 mt-1">4500+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Classic style brown leather jacket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8-JT0iTkGfpe6QAc-iJtrbEkRHvE_XS3xauTwBwjSdO9fZkFXJYcAnd8OP9Oam772pqpGQnPyfdmkBmNE4zkU6QW6TJi2T6A5hZ1O3DihRIJx4yxCaM7TWjeo0QpuxcUp3dOjUQ7x-MoTeh_r_jKlQ2UydQyOaFHZy5tiUHqk7_cchj48WHUdg4CeeLDssrH60Dl1LYXNXQZAT5vcAh_YSPu6RunY0CczimIitgJgH_S16a19B-FpwgRu1N5XFUF8sTxQUF0ZL_M"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">复古机车夹克 真皮材质型格拉满</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥1,280</span>
+<span class="text-[10px] text-slate-400 mt-1">1200+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800 group cursor-pointer">
+<div class="relative aspect-[4/5] bg-slate-50 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Glazed strawberry donut close up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB25Cz66pVeXByUi79sqOALpj_ldBA-YgrGlOohPcSzZsGWlYqHmxvvlhzqRWkeh6pllR0ulBOlvlRW10w_0zgeVeNgEZat2VyQ1JepGlR8J4mo9ZHYp9aWCe1WW40AsY8d6-KfEZzLLT0XisTy-1bLG6hf384eQsojcbV7Ik1oUSKCZbbm_cP2lwD01xLpSEbCDZOFB51feyBo793-dqivRFmYwtFuQ-HRfMYdsClmOHMrZSjgJ54hT0QeXZ-D44koLZuWOqJPfKU"/>
+<div class="absolute top-2 left-2 bg-primary/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">秒杀</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">手作网红甜甜圈 现做现发美味直达</h4>
+<div class="flex items-end justify-between">
+<div class="flex flex-col">
+<span class="text-primary font-bold text-lg leading-none">￥12</span>
+<span class="text-[10px] text-slate-400 mt-1">3.1万+人已购</span>
+</div>
+<button class="bg-primary/10 text-primary p-1.5 rounded-full hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Load More Button -->
+<div class="mt-12 flex justify-center">
+<button class="px-8 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2">
+                        加载更多商品
+                        <span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-12 px-4 lg:px-20">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+<div class="col-span-1 md:col-span-2">
+<div class="flex items-center gap-2 mb-4">
+<div class="bg-primary p-1 rounded text-white">
+<span class="material-symbols-outlined text-xl">bolt</span>
+</div>
+<span class="text-xl font-bold text-primary">Xtreme-Shop</span>
+</div>
+<p class="text-slate-500 max-w-sm mb-6">极致好物，速战速决。我们致力于为您提供全网最具竞争力的秒杀商品和无忧购物体验。</p>
+<div class="flex gap-4">
+<div class="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-500 hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined">share</span>
+</div>
+<div class="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-500 hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<div class="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-500 hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined">chat</span>
+</div>
+</div>
+</div>
+<div>
+<h4 class="font-bold mb-4">服务支持</h4>
+<ul class="space-y-2 text-slate-500 text-sm">
+<li><a class="hover:text-primary" href="#">售后申请</a></li>
+<li><a class="hover:text-primary" href="#">配送查询</a></li>
+<li><a class="hover:text-primary" href="#">会员协议</a></li>
+<li><a class="hover:text-primary" href="#">隐私政策</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-4">关于我们</h4>
+<ul class="space-y-2 text-slate-500 text-sm">
+<li><a class="hover:text-primary" href="#">公司简介</a></li>
+<li><a class="hover:text-primary" href="#">联系我们</a></li>
+<li><a class="hover:text-primary" href="#">加入我们</a></li>
+<li><a class="hover:text-primary" href="#">品牌合作</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-slate-400 text-xs">© 2024 Xtreme-Shop. All rights reserved.</p>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-slate-300">payments</span>
+<span class="material-symbols-outlined text-slate-300">credit_card</span>
+<span class="material-symbols-outlined text-slate-300">account_balance_wallet</span>
+</div>
+</div>
+</footer>
+</body></html>
