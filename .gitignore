@@ -21,3 +21,7 @@ logs/
 *.key
 *.p12
 *.jks
+
+
+#frontend refrences
+xtreme_frontend/refrence/

@@ -1,125 +1,172 @@
-# XtremeShop 开发路线图
+# XtremeShop 开发路线图（更新版）
 
-> 当前已完成：分布式 Session 登录注册（用户端）
-> 目标：在此基础上构建完整的分布式秒杀系统
+> **当前状态**：用户端分布式 Session 登录注册已完成
+> **两套设计系统**：
+> - 用户端 → **Amber Velocity**（暖橙 #ff6600，活力电商风）
+> - 商家端 → **Precision Architect**（专业蓝 #005daa，企业后台风）
 
 ---
 
-## 数据库表总览（9 张表）
+## 数据库表（9 张，已设计完毕）
 
-| 文件 | 表名 | 说明 |
+| 表名 | 文件 | 状态 |
 |------|------|------|
-| `xtreme_user.sql` | `user` | 用户表（已建） |
-| `merchant.sql` | `merchant` | 商家表，独立登录体系 |
-| `category.sql` | `category` | 商品分类表（含初始数据） |
-| `product.sql` | `product` | 商品表，商家发布，OSS 图片 |
-| `seckill.sql` | `seckill_activity` | 秒杀活动表 |
-| `seckill.sql` | `seckill_product` | 秒杀商品表（活动×商品，设秒杀价/库存） |
-| `coupon.sql` | `coupon` | 优惠券表，支持满减/折扣 |
-| `coupon.sql` | `user_coupon` | 用户优惠券表（领取/使用记录） |
-| `order.sql` | `order` | 订单表，含价格快照和优惠券核销 |
+| `user` | xtreme_user.sql | ✅ 已建 |
+| `merchant` | merchant.sql | ✅ 待执行 |
+| `category` | category.sql | ✅ 待执行 |
+| `product` | product.sql | ✅ 待执行 |
+| `seckill_activity` / `seckill_product` | seckill.sql | ✅ 待执行 |
+| `coupon` / `user_coupon` | coupon.sql | ✅ 待执行 |
+| `order` | order.sql | ✅ 待执行 |
 
-**建表顺序**（按外键依赖）：
+> **立即执行**：按顺序导入全部 SQL 文件到 xtreme_shop 数据库
+
+---
+
+## STEP 1：后端工具层（当前任务）
+
+### 1-A  `AliOssUtil`
+- 位置：`xtreme_common/utils/AliOssUtil.java`
+- 功能：`uploadFile(fileName, inputStream)` → 返回文件公网 URL
+- 功能：`deleteFile(fileUrl)` → 按 URL 删除 OSS 文件
+- 配置：KEY/SECRET/BUCKET/ENDPOINT 写入 `application-dev.yml`，通过 `@ConfigurationProperties` 注入
+
+### 1-B  `RedisIdWorker`
+- 位置：`xtreme_common/utils/RedisIdWorker.java`
+- 设计：参考雪花算法思路，**不需要机器码**
+  ```
+  64 bit ID = 符号位(1) + 时间戳秒(31) + Redis自增序列(32)
+  ```
+- 用途：全局唯一订单号、秒杀券 ID
+- 使用：`redisIdWorker.nextId("order")` → 每种业务独立计数
+
+---
+
+## STEP 2：商家端后端 MVC
+
+### 2-A  核心代码
+- `Merchant` 实体类（xtreme_pojo）
+- `MerchantMapper`（Java 注解风格，对齐 UserMapper）
+- `MerchantService` 接口 + `MerchantServiceImpl`
+  - `register(phone, password, name)` → 生成商家 ID（RedisIdWorker），加盐加密注册
+  - `login(phone, password)` → 验证密码，生成 token 存 Redis（key 前缀区分 `merchant:session:`）
+  - `logout(token)` → 清除 Redis session
+- `MerchantController`：`/merchant/register`、`/merchant/login`、`/merchant/logout`
+
+### 2-B  商家鉴权
+- `MerchantInterceptor`：从请求头读取 `X-Merchant-Token`，Redis 验证，存入 `BaseContext`
+- `WebMvcConfig` 注册商家拦截器（路径 `/merchant/**`，放行登录/注册）
+
+---
+
+## STEP 3：前端页面重构（双端分离）
+
+### 3-A  用户端合并登录注册 → 单页切换
+- 文件：`src/views/auth/UserAuth.vue`（合并原 Login + Register）
+- 交互：底部「没有账号？立即注册 / 已有账号？去登录」切换表单
+- 风格：**Amber Velocity**（现有橙色系，保持不变）
+- 路由：`/login` 和 `/register` 均重定向至 `/auth/user`
+
+### 3-B  商家端登录注册 → 单页切换（新建）
+- 文件：`src/views/auth/MerchantAuth.vue`
+- 风格：**Precision Architect**（专业蓝 #005daa）
+  - 背景：深蓝渐变（`#0a1628` → `#0f2040`）左侧品牌区 + 白色卡片右侧表单
+  - 字体：Plus Jakarta Sans（与商家后台统一）
+  - 按钮：蓝色渐变，6px 圆角
+- 入口：首页导航栏右侧「我是商家」按钮 → 跳转 `/auth/merchant`
+- 路由：`/auth/merchant`
+
+### 3-C  路由配置更新
 ```
-user → merchant → category → product
-     → seckill_activity → seckill_product（依赖 product）
-     → coupon（依赖 merchant） → user_coupon（依赖 user + coupon）
-     → order（依赖 user + merchant + product + seckill_product + user_coupon）
+/ → /home
+/auth/user      UserAuth.vue    (用户登录注册)
+/auth/merchant  MerchantAuth.vue (商家登录注册)
+/merchant/dashboard  MerchantDashboard.vue  (需鉴权)
+/merchant/marketing  MerchantMarketing.vue  (需鉴权)
+/merchant/settings   MerchantSettings.vue   (需鉴权)
 ```
 
 ---
 
-## 第一阶段：商家端基础（后端 + 前端）
+## STEP 4：商家后台前端（参考 reference 原型）
 
-**目标**：商家可以注册/登录，发布商品，主页支持「我是商家」入口
+> 原型文件已就绪：`xtreme_frontend/refrence/stitch_xtreme_shop_design_requirements_prd/`
 
-### 后端
-- [ ] `MerchantController` — 注册/登录（复用 PasswordUtils + Redis Session，复用 `@AutoFill`）
-- [ ] `MerchantInterceptor` — 商家鉴权拦截器，加入 `WebMvcConfig`
-- [ ] `CategoryController` — 分类列表查询（只读，供前端下拉）
-- [ ] `ProductController` — 商家发布/修改/下架商品（需鉴权）
-- [ ] `ProductController` — 用户端商品列表（按分类查询、分页）
-- [ ] **阿里云 OSS 集成** — `OssService`，供商品封面上传
+### 4-A  Dashboard（仪表盘）→ 参考 `dashboard/screen.png`
+- 店铺数据概览（总销售额、订单数、商品数）
+- 近期订单快览
 
-### 前端
-- [ ] 主页导航栏加「我是商家」入口（跳转商家登录页）
-- [ ] 商家登录/注册页（复用用户登录样式）
-- [ ] 商家后台页（发布商品表单，含图片上传）
-- [ ] 主页商品列表对接后端（替换硬编码数据，支持分类筛选）
+### 4-B  商品管理 → 商家发布/编辑商品
+- 商品列表（分类筛选、上下架操作）
+- 发布商品表单（名称/价格/库存/分类/封面图上传 → AliOssUtil）
+
+### 4-C  营销中心 → 参考 `marketing_center/screen.png`（核心！）
+- 创建秒杀活动，选择商品，设置秒杀价和秒杀库存
+- 发布优惠券（满减/折扣），设置发行量和有效期
+
+### 4-D  店铺设置 → 参考 `store_settings/screen.png`
+- 修改店铺名称、Logo 上传（AliOssUtil）
 
 ---
 
-## 第二阶段：秒杀核心（后端）
+## STEP 5：秒杀核心后端（重点）
 
-**目标**：实现高并发安全的秒杀下单，不超卖
+> 与你共同构思后再动手，以下为初步方案
 
-### 核心设计
+### 流程设计
 ```
-用户点击「立即抢购」
-  ↓
-1. 拦截器鉴权（必须登录）
-2. 接口限流（Redisson RateLimiter 或 Redis INCR，每秒每 IP 上限）
-3. 检查用户是否已抢过（Redis Set: seckill:bought:{activityId}:{productId}）
-4. Redis 预减库存（DECR seckill:stock:{seckillProductId}，< 0 则秒杀结束）
-5. 发送消息到 RabbitMQ（异步落单）
-  ↓ 异步
-6. 消费消息：写 order 表 + 扣减 seckill_product.seckill_stock
-7. 返回订单号（前端轮询订单状态）
+商家在营销中心发布秒杀活动
+  ↓ 活动开始时，后端将库存预加载至 Redis
+
+用户端点击「立即抢购」
+  ↓ 1. 拦截器鉴权（必须登录）
+  ↓ 2. Redis SISMEMBER 查重（seckill:bought:{activityId}:{userId}）
+  ↓ 3. Redis DECR 预减库存（seckill:stock:{seckillProductId}）
+  ↓ 4. 库存不足 → 直接返回「已抢完」
+  ↓ 5. 库存充足 → 异步消息落单（RabbitMQ 或线程池简化版）
+  ↓ 前端轮询订单状态（order:status:{orderNo}）
 ```
 
-### 后端
-- [ ] `SeckillActivityController` — 活动列表/详情查询
-- [ ] `SeckillController` — 秒杀下单接口（核心）
-- [ ] Redis 预加载库存（应用启动时 / 活动开始时，把库存写入 Redis）
-- [ ] **MQ 异步落单**（引入 RabbitMQ 或先用线程池简化版）
-- [ ] `OrderController` — 查询我的订单状态
-
-### Redis Key 设计
+### Redis Key 规范
 | Key | 类型 | 说明 |
 |-----|------|------|
-| `seckill:stock:{seckillProductId}` | String | 秒杀库存，原子 DECR |
-| `seckill:bought:{activityId}:{userId}` | Set | 已抢用户集合，防重复 |
-| `order:status:{orderNo}` | String | 订单状态缓存（轮询用） |
+| `seckill:stock:{seckillProductId}` | String | 秒杀库存，DECR 原子操作 |
+| `seckill:bought:{activityId}:{userId}` | Set | 已购用户集合，SADD 防重 |
+| `coupon:stock:{couponId}` | String | 券库存，DECR 原子操作 |
+| `coupon:got:{couponId}:{userId}` | String | 防重复领券 |
+| `order:status:{orderNo}` | String | 订单状态缓存（轮询） |
 | `session:{token}` | String | 用户 session（已有） |
-| `user:session:{userId}` | String | 用户 token 反查（已有） |
+| `merchant:session:{token}` | String | 商家 session |
 
 ---
 
-## 第三阶段：优惠券秒杀（后端 + 前端）
+## STEP 6：用户端秒杀页前端
 
-**目标**：用户可以秒杀抢券，下单时使用优惠券抵扣
-
-### 后端
-- [ ] `CouponController` — 优惠券列表、抢券接口（防重复领取）
-- [ ] 抢券用 Redis 原子操作（同秒杀库存逻辑）
-- [ ] 下单时核销优惠券（更新 `user_coupon.status = 1`）
-- [ ] 计算实付金额（`actual_amount = seckill_price × qty - discount`）
-
-### 前端
-- [ ] 秒杀页展示活动商品（倒计时 + 秒杀价 + 剩余库存）
-- [ ] 下单弹窗（选择优惠券、确认金额）
-- [ ] 抢购结果页（成功/失败、订单号）
-- [ ] 「我的订单」页（订单列表、状态展示）
-- [ ] 「我的优惠券」页（未使用/已使用/已过期）
+- 秒杀商品列表（倒计时 + 秒杀价 + 库存进度条）
+- 抢购弹窗（选择优惠券 → 确认金额 → 下单）
+- 抢购结果页（成功/失败 → 订单号）
+- 「我的订单」页（订单状态轮询）
+- 「我的优惠券」页
 
 ---
 
-## 第四阶段：体验优化
+## 当前最近任务清单
 
-- [ ] 秒杀页实时库存刷新（轮询或 WebSocket）
-- [ ] 订单超时自动取消（Redis TTL + 定时任务恢复库存）
-- [ ] 商家后台订单管理
-- [ ] 接口限流（Redisson / Spring 限流注解）
-- [ ] 压测验证不超卖（JMeter 模拟 500 并发）
+```
+[ STEP 1 - 现在开始 ]
+□ 1. 编写 AliOssUtil（含 yml 配置）
+□ 2. 编写 RedisIdWorker
 
----
+[ STEP 2 - 紧接 ]
+□ 3. Merchant 实体 + Mapper + Service + Controller
+□ 4. MerchantInterceptor + WebMvcConfig 更新
 
-## 下一步立即动手
+[ STEP 3 - 然后 ]
+□ 5. UserAuth.vue（合并用户登录注册）
+□ 6. MerchantAuth.vue（商家登录注册，蓝色系）
+□ 7. 首页加「我是商家」入口 + 路由更新
 
-**第一阶段第一步**：
-1. 在 MySQL 执行所有建表 SQL（按顺序）
-2. 后端新建 `MerchantController` + `MerchantService` + `MerchantMapper`
-3. 前端主页导航栏加「我是商家」入口
-
-> 注：第二阶段秒杀核心是本项目的亮点，建议第一阶段完成后立即推进，
-> 保证演示时有完整的「商家发布秒杀商品 → 用户抢购 → 生成订单」闭环。
+[ STEP 4 - 之后共同构思 ]
+□ 8. 商家后台 Dashboard + 商品管理 + 营销中心
+□ 9. 秒杀后端核心（共同设计确认后再动手）
+```

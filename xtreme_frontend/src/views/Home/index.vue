@@ -72,6 +72,7 @@ const products = [
         <a href="javascript:void(0)">食品</a>
       </nav>
       <div class="actions">
+        <RouterLink to="/merchant/login" class="merchant-btn">我是商家</RouterLink>
         <span v-if="!isLoggedIn" class="login-link"><RouterLink to="/login">登录</RouterLink> / <RouterLink to="/register">注册</RouterLink></span>
         <button v-else @click="handleLogout" class="logout-btn">退出登录</button>
       </div>
@@ -125,7 +126,7 @@ const products = [
 
 <style scoped>
 .home-page { min-height: 100vh; background: #f8f7f5; color: #111827; }
-.topbar { height: 64px; position: sticky; top: 0; z-index: 10; padding: 0 24px; background: #fff; border-bottom: 1px solid #e5e7eb; display: grid; grid-template-columns: 200px minmax(340px, 520px) 1fr 130px; gap: 16px; align-items: center; }
+.topbar { height: 64px; position: sticky; top: 0; z-index: 10; padding: 0 24px; background: #fff; border-bottom: 1px solid #e5e7eb; display: grid; grid-template-columns: 200px minmax(340px, 520px) 1fr 200px; gap: 16px; align-items: center; }
 .brand { display: flex; align-items: center; gap: 8px; color: #ff6600; min-width: 0; }
 .brand strong { font-size: 28px; line-height: 1; white-space: nowrap; }
 .brand-logo { background: #ff6600; color: #fff; border-radius: 8px; width: 32px; height: 32px; aspect-ratio: 1 / 1; display: grid; place-items: center; font-size: 20px; }
@@ -135,8 +136,10 @@ const products = [
 nav { display: flex; gap: 18px; justify-content: center; }
 nav a { color: #374151; text-decoration: none; font-size: 14px; font-weight: 600; }
 nav .active { color: #ff6600; border-bottom: 2px solid #ff6600; }
-.actions { text-align: right; }
-.login-link { color: #64748b; text-decoration: none; font-weight: 600; font-size: 14px; }
+.actions { text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.merchant-btn { font-size: 13px; font-weight: 600; color: #005daa; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #005daa; white-space: nowrap; }
+.merchant-btn:hover { background: #005daa; color: #fff; }
+.login-link { color: #64748b; text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; }
 .login-link a { color: #ff6600; text-decoration: none; font-weight: 700; }
 .logout-btn { background: #ff6600; color: #fff; border: 0; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
 .container { max-width: 1360px; margin: 20px auto 0; padding: 0 16px 32px; }

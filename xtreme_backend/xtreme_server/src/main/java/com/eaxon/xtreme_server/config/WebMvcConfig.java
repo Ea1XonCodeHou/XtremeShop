@@ -5,6 +5,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.eaxon.xtreme_server.interceptor.MerchantInterceptor;
 import com.eaxon.xtreme_server.interceptor.UserInterceptor;
 
 import lombok.RequiredArgsConstructor;
@@ -14,16 +15,26 @@ import lombok.RequiredArgsConstructor;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final UserInterceptor userInterceptor;
+    private final MerchantInterceptor merchantInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 用户端拦截器：拦截 /api/user/** 以外的所有接口（登录注册放行）
         registry.addInterceptor(userInterceptor)
-                .addPathPatterns("/api/**")
-                // 登录、注册接口不拦截
+                .addPathPatterns("/api/user/**")
                 .excludePathPatterns(
                         "/api/user/login",
-                    "/api/user/register",
-                    "/api/user/logout"
+                        "/api/user/register",
+                        "/api/user/logout"
+                );
+
+        // 商家端拦截器：拦截 /api/merchant/** 业务接口（登录注册放行）
+        registry.addInterceptor(merchantInterceptor)
+                .addPathPatterns("/api/merchant/**")
+                .excludePathPatterns(
+                        "/api/merchant/login",
+                        "/api/merchant/register",
+                        "/api/merchant/logout"
                 );
     }
 
