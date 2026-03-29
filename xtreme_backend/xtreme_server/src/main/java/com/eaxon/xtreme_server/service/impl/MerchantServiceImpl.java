@@ -2,6 +2,7 @@ package com.eaxon.xtreme_server.service.impl;
 
 import com.eaxon.xtreme_common.utils.PasswordUtils;
 import com.eaxon.xtreme_common.utils.RedisIdWorker;
+import com.eaxon.xtreme_pojo.dto.MerchantInfoDTO;
 import com.eaxon.xtreme_pojo.dto.MerchantLoginDTO;
 import com.eaxon.xtreme_pojo.dto.MerchantRegisterDTO;
 import com.eaxon.xtreme_pojo.entity.Merchant;
@@ -104,5 +105,24 @@ public class MerchantServiceImpl implements MerchantService {
             redisTemplate.delete(merchantTokenKey(Long.parseLong(merchantIdStr)));
         }
         log.info("商家退出登录 - token: {}", token);
+    }
+
+    @Override
+    public Merchant getById(Long merchantId) {
+        Merchant merchant = merchantMapper.selectById(merchantId);
+        if (merchant == null) throw new RuntimeException("商家不存在");
+        return merchant;
+    }
+
+    @Override
+    public void updateInfo(Long merchantId, MerchantInfoDTO dto) {
+        Merchant merchant = new Merchant();
+        merchant.setId(merchantId);
+        if (dto.getName() != null && !dto.getName().isBlank()) merchant.setName(dto.getName());
+        if (dto.getDescription() != null) merchant.setDescription(dto.getDescription());
+        if (dto.getLogoUrl() != null) merchant.setLogoUrl(dto.getLogoUrl());
+        merchant.setUpdatedAt(LocalDateTime.now());
+        merchantMapper.updateById(merchant);
+        log.info("商家 {} 更新店铺信息", merchantId);
     }
 }

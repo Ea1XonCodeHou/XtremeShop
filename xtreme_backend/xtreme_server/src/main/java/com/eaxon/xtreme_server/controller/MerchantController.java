@@ -1,9 +1,12 @@
 package com.eaxon.xtreme_server.controller;
 
 import com.eaxon.xtreme_common.result.Result;
+import com.eaxon.xtreme_pojo.dto.MerchantInfoDTO;
 import com.eaxon.xtreme_pojo.dto.MerchantLoginDTO;
 import com.eaxon.xtreme_pojo.dto.MerchantRegisterDTO;
+import com.eaxon.xtreme_pojo.entity.Merchant;
 import com.eaxon.xtreme_pojo.vo.MerchantLoginVO;
+import com.eaxon.xtreme_server.context.BaseContext;
 import com.eaxon.xtreme_server.service.MerchantService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +40,25 @@ public class MerchantController {
     public Result<Void> logout(HttpServletRequest request) {
         String token = request.getHeader(TOKEN_HEADER);
         merchantService.logout(token);
+        return Result.success();
+    }
+
+    /** 获取当前商家店铺信息 */
+    @GetMapping("/info")
+    public Result<Merchant> getInfo() {
+        Long merchantId = BaseContext.getCurrentId();
+        Merchant merchant = merchantService.getById(merchantId);
+        // 清除敏感字段再返回
+        merchant.setPassword(null);
+        merchant.setSalt(null);
+        return Result.success(merchant);
+    }
+
+    /** 更新店铺名称/简介/Logo */
+    @PutMapping("/info")
+    public Result<Void> updateInfo(@RequestBody MerchantInfoDTO dto) {
+        Long merchantId = BaseContext.getCurrentId();
+        merchantService.updateInfo(merchantId, dto);
         return Result.success();
     }
 }
