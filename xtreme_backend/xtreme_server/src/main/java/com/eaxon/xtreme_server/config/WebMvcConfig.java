@@ -19,9 +19,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 用户端拦截器：拦截 /api/user/** 以外的所有接口（登录注册放行）
+        // 用户端拦截器：保护用户资源接口 + 秒杀下单接口
+        // /api/seckill/active 为公开接口（首页展示），不在拦截范围内
         registry.addInterceptor(userInterceptor)
-                .addPathPatterns("/api/user/**")
+                .addPathPatterns(
+                        "/api/user/**",
+                        "/api/seckill/order",
+                        "/api/seckill/order/**",
+                        "/api/seckill/orders"
+                )
                 .excludePathPatterns(
                         "/api/user/login",
                         "/api/user/register",

@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.eaxon.xtreme_pojo.entity.SeckillProduct;
@@ -42,4 +43,11 @@ public interface SeckillProductMapper extends BaseMapper<SeckillProduct> {
             "WHERE sp.activity_id = #{activityId} AND p.merchant_id = #{merchantId}")
     int countByActivityAndMerchant(@Param("activityId") Long activityId,
                                     @Param("merchantId") Long merchantId);
+
+    /**
+     * 异步落库后同步扣减 DB 库存，保证 DB 与 Redis 最终一致。
+     * 限制条件 seckill_stock > 0 防止超扣（Redis Lua 已保证原子性，此处仅做安全托底）。
+     */
+    @Update("UPDATE seckill_product SET seckill_stock = seckill_stock - 1 WHERE id = #{spId} AND seckill_stock > 0")
+    int decrementStock(@Param("spId") Long spId);
 }

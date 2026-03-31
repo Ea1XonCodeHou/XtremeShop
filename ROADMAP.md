@@ -170,3 +170,29 @@
 □ 8. 商家后台 Dashboard + 商品管理 + 营销中心
 □ 9. 秒杀后端核心（共同设计确认后再动手）
 ```
+
+
+① 后端 Entity + Mapper（SeckillActivity, SeckillProduct）
+② 后端 Service + Controller 接口1-5（商家端）
+③ 后端接口6（公开接口，首页用）
+④ 前端 MarketingCenter.vue 秒杀 Tab 完整实现
+⑤ 前端 Home/index.vue 替换真实数据
+⑥ 联调，按 T1-T10 逐项验证
+
+
+Phase 1 — 后端基础层
+  ① Order 实体 + Mapper
+  ② SeckillOrderDTO / SeckillOrderVO / OrderVO
+  ③ ThreadPoolConfig
+  ④ seckill.lua
+
+Phase 2 — 后端核心业务层
+  ⑤ OrderService 接口
+  ⑥ OrderServiceImpl（Lua 执行 + 异步落库 + 库存预热）
+  ⑦ SeckillOrderController（3 个接口）
+  ⑧ WebMvcConfig 拦截器注册
+
+Phase 3 — 前端
+  ⑨ Home/index.vue 按钮鉴权改造
+  ⑩ SeckillOrder.vue 下单页
+  ⑪ router/index.js 路由
