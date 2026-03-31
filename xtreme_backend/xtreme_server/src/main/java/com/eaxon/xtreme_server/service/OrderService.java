@@ -37,6 +37,21 @@ public interface OrderService {
     List<OrderVO> listMyOrders(int page, int pageSize);
 
     /**
+     * 查询当前用户的秒杀订单总数（配合分页使用）
+     */
+    int countMyOrders();
+
+    /**
+     * Mock 支付接口
+     * <p>
+     * 校验订单归属当前用户且状态为 0（待支付），满足条件则更新 status=1（已支付）+ payTime=now。
+     * 无需真实支付密码校验，任意密码均视为通过（课程 Demo 级模拟）。
+     *
+     * @param orderNo 订单号
+     */
+    void mockPay(String orderNo);
+
+    /**
      * 秒杀库存预热
      * <p>
      * 将 DB 中 seckill_product.seckill_stock_init 写入 Redis（NX 保证幂等）。

@@ -106,16 +106,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // SET NX EX：仅当 key 不存在时写入，TTL 24h
+        // 注意：使用 seckillStock（当前 DB 剩余库存），而非 seckillStockInit（初始值）
+        // 理由：若 Redis Key 已过期（如活动进行中 Redis 重启），用剩余库存重建，防止超卖
         boolean set = Boolean.TRUE.equals(
                 redisTemplate.opsForValue().setIfAbsent(
                         stockKey,
-                        String.valueOf(sp.getSeckillStockInit()),
+                        String.valueOf(sp.getSeckillStock()),
                         STOCK_TTL_HOURS, TimeUnit.HOURS
                 )
         );
 
         if (set) {
-            log.info("秒杀库存预热完成 - spId: {}, initStock: {}", spId, sp.getSeckillStockInit());
+            log.info("秒杀库存预热完成 - spId: {}, currentStock: {}", spId, sp.getSeckillStock());
         } else {
             log.debug("秒杀库存预热跳过（并发写入已由其他线程完成）- spId: {}", spId);
         }
@@ -183,7 +185,8 @@ public class OrderServiceImpl implements OrderService {
 
         // Step 6 ▶ 异步落库（提交到 seckillOrderExecutor 线程池，不阻塞响应）
         // 注意：OrderAsyncService 是独立 Bean，Spring AOP 代理生效，@Async 正常工作
-        orderAsyncService.saveOrder(orderNo, userId, sp, product, now);
+        orderAsyncService.saveOrder(orderNo, userId, sp, product, now,
+                dto.getReceiver(), dto.getPhone(), dto.getAddress());
 
         log.info("秒杀抢购成功 - orderNo: {}, userId: {}, spId: {}", orderNo, userId, spId);
         return vo;
@@ -208,5 +211,22 @@ public class OrderServiceImpl implements OrderService {
         Long userId = BaseContext.getCurrentId();
         int offset = (page - 1) * pageSize;
         return orderMapper.selectSeckillOrdersByUserId(userId, pageSize, offset);
+    }
+
+    @Override
+    public int countMyOrders() {
+        Long userId = BaseContext.getCurrentId();
+        return orderMapper.countSeckillOrdersByUserId(userId);
+    }
+
+    @Override
+    public void mockPay(String orderNo) {
+        Long userId = BaseContext.getCurrentId();
+        int updated = orderMapper.mockPay(orderNo, userId);
+        if (updated == 0) {
+            // 可能原因：订单不存在、不属于当前用户、状态不是待支付
+            throw new RuntimeException("支付失败：订单不存在、无权操作或已支付");
+        }
+        log.info("Mock支付成功 - orderNo: {}, userId: {}", orderNo, userId);
     }
 }

@@ -180,6 +180,11 @@ public class SeckillServiceImpl implements SeckillService {
         return seckillProductMapper.selectActiveSeckillProducts();
     }
 
+    @Override
+    public SeckillProductVO getSeckillProductById(Long spId) {
+        return seckillProductMapper.selectActiveById(spId);
+    }
+
     /** 刷新活动状态：根据当前时间自动纠正 status */
     private void refreshStatus() {
         activityMapper.activateStarted();

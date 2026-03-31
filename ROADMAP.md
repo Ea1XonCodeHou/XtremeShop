@@ -196,3 +196,94 @@ Phase 3 — 前端
   ⑨ Home/index.vue 按钮鉴权改造
   ⑩ SeckillOrder.vue 下单页
   ⑪ router/index.js 路由
+
+3月31日：
+Phase A — 前端页面创建
+步骤	文件	说明
+A1	src/views/Seckill/OrderConfirm.vue	秒杀下单确认页：展示商品信息（图片/名称/秒杀价）、填写收货人/手机/地址、显示应付金额、"确认下单"按钮
+A2	src/views/Seckill/PayMock.vue	Mock 支付页：显示订单号+金额，"模拟支付"按钮，点击后调后端接口更新订单状态为已支付，跳转支付结果页
+A3	src/views/Seckill/PayResult.vue	支付结果页：成功/失败展示，提供"查看订单"和"返回首页"入口
+A4	src/views/Seckill/MyOrders.vue	我的订单列表页：调 GET /seckill/orders，分页展示订单卡片（商品图、名称、价格、状态）
+Phase B — 路由注册
+步骤	文件	说明
+B1	src/router/index.js	新增 4 条路由：/seckill/confirm、/seckill/pay、/seckill/result、/orders，前三条需用户登录守卫
+Phase C — Home/index.vue 改造
+步骤	文件	说明
+C1	src/views/Home/index.vue	"立即抢购"按钮 → 不再直接下单，改为 router.push({ path: '/seckill/confirm', query: { spId } })，跳转到下单确认页
+C2	src/views/Home/index.vue	删除现有 placeSeckillOrder() 函数和 Toast 组件（移到 OrderConfirm 页面）
+C3	src/views/Home/index.vue	顶栏增加"我的订单"入口（登录用户可见）
+Phase D — 后端补全
+步骤	文件	说明
+D1	SeckillOrderController.java	新增 POST /api/seckill/order/{orderNo}/pay Mock 支付接口：校验订单归属+状态=0，更新 status=1 + payTime=now
+D2	OrderService.java + OrderServiceImpl.java	新增 mockPay(String orderNo) 方法
+D3	SeckillPublicController.java 或新接口	新增 GET /api/seckill/product/{spId} 单个秒杀商品详情（下单确认页需要单独拉取商品数据）
+Phase E — 联调验证
+步骤	说明
+E1	完整链路：首页点击抢购 → 下单确认页 → 确认下单（Lua扣库存） → Mock支付 → 支付成功 → 查看订单
+E2	异常链路：未登录→跳登录、库存不足→提示、重复购买→提示
+
+⚠️ 后端缺失功能（15%）
+1. 支付接口（Mock 支付）
+
+❌ POST /api/seckill/order/{orderNo}/pay：Mock 支付接口
+功能：校验订单归属 + 状态=0（待支付）→ 更新 status=1（已支付）+ payTime=now
+需要在 OrderService 和 OrderServiceImpl 中新增 mockPay(String orderNo) 方法- 需要在 SeckillOrderController 中新增接口
+2. 单个秒杀商品详情接口（可选）
+
+❌ GET /api/seckill/product/{spId}：查询单个秒杀商品详情
+功能：下单确认页需要单独拉取商品数据（商品名称、图片、秒杀价、库存）
+当前只有列表接口（/api/seckill/active），没有单个商品详情接口
+可以通过前端缓存列表数据来规避，不是必须的
+
+❌ 前端缺失功能（60%）
+1. 用户端秒杀下单确认页（0%）
+
+❌ views/Seckill/OrderConfirm.vue：秒杀下单确认页
+功能：
+展示商品信息（图片、名称、秒杀价）
+填写收货信息（收货人、手机号、收货地址）
+显示应付金额
+"确认下单"按钮 → 调用 /api/seckill/order 接口
+下单成功 → 跳转到支付页（/seckill/pay?orderNo=xxx）
+路由：/seckill/confirm?spId=xxx
+当前首页直接下单，没有确认页
+2. 用户端 Mock 支付页（0%）
+
+❌ views/Seckill/PayMock.vue：Mock 支付页
+功能：
+显示订单号 + 应付金额
+"模拟支付"按钮 → 调用 /api/seckill/order/{orderNo}/pay 接口
+支付成功 → 跳转到支付结果页（/seckill/result?success=true&orderNo=xxx）
+路由：/seckill/pay?orderNo=xxx
+3. 用户端支付结果页（0%）
+
+❌ views/Seckill/PayResult.vue：支付结果页
+功能：
+成功/失败展示（根据 URL 参数 success=true/false）
+"查看订单"按钮 → 跳转到订单列表页（/orders）
+"返回首页"按钮 → 跳转到首页（/home）
+路由：/seckill/result?success=true&orderNo=xxx
+4. 用户端我的订单列表页（0%）
+
+❌ views/Seckill/MyOrders.vue：我的订单列表页
+功能：
+调用 /api/seckill/orders 接口（分页查询）
+展示订单卡片（商品图、名称、秒杀价、数量、订单状态、订单号、下单时间）
+订单状态标签（待支付/已支付/已取消）
+点击订单卡片 → 查看订单详情（可选）
+路由：/orders
+当前首页顶栏没有"我的订单"入口
+5. 首页改造（20%）
+
+⚠️ Home/index.vue 需要改造：
+❌ "立即抢购"按钮 → 改为跳转到下单确认页（router.push({ path: '/seckill/confirm', query: { spId } })）
+❌ 删除现有的 placeSeckillOrder() 函数和 Toast 组件（移到 OrderConfirm 页面）
+❌ 顶栏增加"我的订单"入口（登录用户可见）
+6. 路由配置（0%）
+
+❌ router/index.js 需要新增 4 条路由：
+/seckill/confirm：下单确认页（需用户登录守卫）
+/seckill/pay：Mock 支付页（需用户登录守卫）
+/seckill/result：支付结果页（需用户登录守卫）
+/orders：我的订单列表页（需用户登录守卫）
+❌ 需要添加用户登录路由守卫（检查 sessionStorage.sessionId）

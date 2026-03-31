@@ -22,4 +22,6 @@ public interface SeckillService {
     void removeSeckillProduct(Long merchantId, Long activityId, Long spId);
 
     List<SeckillProductVO> listActiveSeckillProducts();
+
+    SeckillProductVO getSeckillProductById(Long spId);
 }

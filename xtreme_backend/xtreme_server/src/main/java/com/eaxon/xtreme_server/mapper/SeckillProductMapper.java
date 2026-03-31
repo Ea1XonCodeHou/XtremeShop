@@ -44,6 +44,18 @@ public interface SeckillProductMapper extends BaseMapper<SeckillProduct> {
     int countByActivityAndMerchant(@Param("activityId") Long activityId,
                                     @Param("merchantId") Long merchantId);
 
+    /** 用户端：根据 spId 查询单个秒杀商品详情（下单确认页用） */
+    @Select("SELECT sp.id AS spId, sp.activity_id AS activityId, sa.name AS activityName, " +
+            "sp.product_id AS productId, p.name AS productName, p.cover_url AS coverUrl, " +
+            "p.price AS originalPrice, sp.seckill_price AS seckillPrice, " +
+            "sp.seckill_stock AS seckillStock, sp.seckill_stock_init AS seckillStockInit, " +
+            "sp.limit_per_user AS limitPerUser, sa.end_time AS activityEndTime " +
+            "FROM seckill_product sp " +
+            "JOIN seckill_activity sa ON sp.activity_id = sa.id " +
+            "JOIN product p ON sp.product_id = p.id " +
+            "WHERE sp.id = #{spId} AND p.is_on_sale = 1")
+    SeckillProductVO selectActiveById(@Param("spId") Long spId);
+
     /**
      * 异步落库后同步扣减 DB 库存，保证 DB 与 Redis 最终一致。
      * 限制条件 seckill_stock > 0 防止超扣（Redis Lua 已保证原子性，此处仅做安全托底）。

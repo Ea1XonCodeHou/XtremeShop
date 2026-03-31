@@ -56,6 +56,15 @@ public class Order implements Serializable {
     /** 实付总价 = seckill_price × quantity - discount_amount */
     private BigDecimal actualAmount;
 
+    /** 收货人姓名 */
+    private String receiver;
+
+    /** 收货手机号 */
+    private String phone;
+
+    /** 收货地址 */
+    private String address;
+
     /**
      * 订单状态
      * 0 = 待支付

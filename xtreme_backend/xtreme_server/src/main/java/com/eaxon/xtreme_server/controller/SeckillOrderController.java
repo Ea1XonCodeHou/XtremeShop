@@ -1,6 +1,8 @@
 package com.eaxon.xtreme_server.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,17 +68,34 @@ public class SeckillOrderController {
     }
 
     /**
+     * Mock 支付
+     * <p>
+     * 校验订单归属当前用户且状态为 0（待支付），满足则更新 status=1 + payTime=now。
+     */
+    @PostMapping("/order/{orderNo}/pay")
+    public Result<Void> mockPay(@PathVariable String orderNo) {
+        log.info("Mock支付请求 - orderNo: {}", orderNo);
+        orderService.mockPay(orderNo);
+        return Result.success();
+    }
+
+    /**
      * 分页查询当前用户的秒杀订单列表（最新在前）
      *
      * @param page     页码，从 1 开始，默认 1
      * @param pageSize 每页条数，默认 10，最大 50
      */
     @GetMapping("/orders")
-    public Result<List<OrderVO>> listMyOrders(
+    public Result<Map<String, Object>> listMyOrders(
             @RequestParam(defaultValue = "1")  int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         if (pageSize > 50) pageSize = 50;
-        List<OrderVO> orders = orderService.listMyOrders(page, pageSize);
-        return Result.success(orders);
+        List<OrderVO> list  = orderService.listMyOrders(page, pageSize);
+        int           total = orderService.countMyOrders();
+        Map<String, Object> data = new HashMap<>();
+        data.put("list",  list);
+        data.put("total", total);
+        return Result.success(data);
     }
+
 }

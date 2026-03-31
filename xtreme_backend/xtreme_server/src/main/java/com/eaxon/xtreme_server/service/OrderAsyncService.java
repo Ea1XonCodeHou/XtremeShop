@@ -43,11 +43,15 @@ public class OrderAsyncService {
      * @param sp        秒杀商品实体（含 activityId, productId, seckillPrice）
      * @param product   商品实体（含 merchantId, price, name）
      * @param createdAt 下单时间（与立即响应 VO 保持一致）
+     * @param receiver  收货人姓名
+     * @param phone     收货手机号
+     * @param address   收货地址
      */
     @Async("seckillOrderExecutor")
     public void saveOrder(String orderNo, Long userId,
                           SeckillProduct sp, Product product,
-                          LocalDateTime createdAt) {
+                          LocalDateTime createdAt,
+                          String receiver, String phone, String address) {
         try {
             Order order = new Order();
             order.setOrderNo(orderNo);
@@ -60,6 +64,9 @@ public class OrderAsyncService {
             order.setSeckillPrice(sp.getSeckillPrice());     // 秒杀价
             order.setDiscountAmount(BigDecimal.ZERO);        // 暂不支持叠加优惠券
             order.setActualAmount(sp.getSeckillPrice());     // 实付 = 秒杀价 × 1
+            order.setReceiver(receiver);
+            order.setPhone(phone);
+            order.setAddress(address);
             order.setStatus(0);                              // 0 = 待支付
             order.setCreatedAt(createdAt);
             order.setUpdatedAt(createdAt);
