@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.eaxon.xtreme_pojo.dto.SeckillActivityDTO;
 import com.eaxon.xtreme_pojo.dto.SeckillProductDTO;
+import com.eaxon.xtreme_pojo.vo.SeckillActivityStatsVO;
 import com.eaxon.xtreme_pojo.vo.SeckillActivityVO;
 import com.eaxon.xtreme_pojo.vo.SeckillProductVO;
 
@@ -24,4 +25,7 @@ public interface SeckillService {
     List<SeckillProductVO> listActiveSeckillProducts();
 
     SeckillProductVO getSeckillProductById(Long spId);
+
+    /** 查询商家在指定秒杀活动中的订单汇总统计 */
+    SeckillActivityStatsVO getSeckillStats(Long merchantId, Long activityId);
 }

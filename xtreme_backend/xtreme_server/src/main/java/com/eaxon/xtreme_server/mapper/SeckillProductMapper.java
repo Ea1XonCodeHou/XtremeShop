@@ -62,4 +62,19 @@ public interface SeckillProductMapper extends BaseMapper<SeckillProduct> {
      */
     @Update("UPDATE seckill_product SET seckill_stock = seckill_stock - 1 WHERE id = #{spId} AND seckill_stock > 0")
     int decrementStock(@Param("spId") Long spId);
+
+    /**
+     * 取消订单时回补 DB 库存（+1），与 Redis INCR 配合保证最终一致性
+     */
+    @Update("UPDATE seckill_product SET seckill_stock = seckill_stock + 1 WHERE id = #{spId}")
+    int incrementStock(@Param("spId") Long spId);
+
+    /**
+     * 查询即将开始（五分钟内）以及进行中的秒杀商品 spId，用于定时预热 Redis 库存
+     */
+    @Select("SELECT sp.id FROM seckill_product sp " +
+            "JOIN seckill_activity sa ON sp.activity_id = sa.id " +
+            "WHERE (sa.status = 1 OR (sa.status = 0 AND sa.start_time <= DATE_ADD(NOW(), INTERVAL 5 MINUTE))) " +
+            "AND sa.end_time > NOW()")
+    List<Long> selectSpIdsForWarmUp();
 }

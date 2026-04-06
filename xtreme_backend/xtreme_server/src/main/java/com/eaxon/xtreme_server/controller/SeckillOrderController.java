@@ -1,9 +1,5 @@
 package com.eaxon.xtreme_server.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eaxon.xtreme_common.result.Result;
 import com.eaxon.xtreme_pojo.dto.SeckillOrderDTO;
 import com.eaxon.xtreme_pojo.vo.OrderVO;
+import com.eaxon.xtreme_pojo.vo.PageResult;
 import com.eaxon.xtreme_pojo.vo.SeckillOrderVO;
 import com.eaxon.xtreme_server.service.OrderService;
 
@@ -29,9 +26,11 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * 接口一览：
  * <pre>
- *   POST /api/seckill/order              秒杀下单（< 5ms，Lua 原子 + 异步落库）
- *   GET  /api/seckill/order/{orderNo}    查询订单详情
- *   GET  /api/seckill/orders             分页查询我的秒杀订单列表
+ *   POST /api/seckill/order                  秒杀下单（< 5ms，Lua 原子 + 异步落库）
+ *   GET  /api/seckill/order/{orderNo}        查询订单详情
+ *   POST /api/seckill/order/{orderNo}/pay    Mock 支付
+ *   POST /api/seckill/order/{orderNo}/cancel 用户主动取消待支付订单
+ *   GET  /api/seckill/orders                 分页查询我的秒杀订单列表
  * </pre>
  */
 @Slf4j
@@ -80,22 +79,29 @@ public class SeckillOrderController {
     }
 
     /**
+     * 用户主动取消待支付订单
+     * <p>
+     * 仅限 status=0（待支付）且属于当前用户的订单，取消后回补 Redis + DB 库存和优惠券。
+     */
+    @PostMapping("/order/{orderNo}/cancel")
+    public Result<Void> cancelOrder(@PathVariable String orderNo) {
+        log.info("取消订单请求 - orderNo: {}", orderNo);
+        orderService.cancelOrder(orderNo);
+        return Result.success();
+    }
+
+    /**
      * 分页查询当前用户的秒杀订单列表（最新在前）
      *
      * @param page     页码，从 1 开始，默认 1
      * @param pageSize 每页条数，默认 10，最大 50
      */
     @GetMapping("/orders")
-    public Result<Map<String, Object>> listMyOrders(
+    public Result<PageResult<OrderVO>> listMyOrders(
             @RequestParam(defaultValue = "1")  int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         if (pageSize > 50) pageSize = 50;
-        List<OrderVO> list  = orderService.listMyOrders(page, pageSize);
-        int           total = orderService.countMyOrders();
-        Map<String, Object> data = new HashMap<>();
-        data.put("list",  list);
-        data.put("total", total);
-        return Result.success(data);
+        return Result.success(orderService.listMyOrders(page, pageSize));
     }
 
 }

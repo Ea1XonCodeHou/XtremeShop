@@ -1,5 +1,7 @@
 package com.eaxon.xtreme_server.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -9,17 +11,24 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.eaxon.xtreme_common.utils.RedisIdWorker;
 import com.eaxon.xtreme_pojo.dto.SeckillOrderDTO;
+import com.eaxon.xtreme_pojo.entity.Coupon;
+import com.eaxon.xtreme_pojo.entity.Order;
 import com.eaxon.xtreme_pojo.entity.Product;
 import com.eaxon.xtreme_pojo.entity.SeckillProduct;
+import com.eaxon.xtreme_pojo.entity.UserCoupon;
 import com.eaxon.xtreme_pojo.vo.OrderVO;
+import com.eaxon.xtreme_pojo.vo.PageResult;
 import com.eaxon.xtreme_pojo.vo.SeckillOrderVO;
 import com.eaxon.xtreme_server.context.BaseContext;
+import com.eaxon.xtreme_server.mapper.CouponMapper;
 import com.eaxon.xtreme_server.mapper.OrderMapper;
 import com.eaxon.xtreme_server.mapper.ProductMapper;
 import com.eaxon.xtreme_server.mapper.SeckillProductMapper;
+import com.eaxon.xtreme_server.mapper.UserCouponMapper;
 import com.eaxon.xtreme_server.service.OrderAsyncService;
 import com.eaxon.xtreme_server.service.OrderService;
 
@@ -56,6 +65,8 @@ public class OrderServiceImpl implements OrderService {
     private final ProductMapper        productMapper;
     private final OrderMapper          orderMapper;
     private final OrderAsyncService    orderAsyncService;
+    private final UserCouponMapper     userCouponMapper;
+    private final CouponMapper         couponMapper;
 
     /** 预加载的 Lua 脚本对象（应用启动时初始化一次） */
     private RedisScript<Long> seckillScript;
@@ -168,27 +179,79 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("关联商品数据异常，请联系客服");
         }
 
-        // Step 4 ▶ 生成全局唯一订单号
+        // Step 4 ▶ 优惠券校验与核销（同步执行，确保在响应前状态已锁定）
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        Long userCouponId = dto.getUserCouponId();
+        if (userCouponId != null) {
+            // 4.1 校验 user_coupon 归属 & 状态
+            UserCoupon uc = userCouponMapper.selectByIdAndUserId(userCouponId, userId);
+            if (uc == null) {
+                throw new RuntimeException("优惠券不存在");
+            }
+            if (uc.getStatus() != 0) {
+                throw new RuntimeException("优惠券已使用或已过期");
+            }
+
+            // 4.2 校验 coupon 有效性
+            Coupon coupon = couponMapper.selectById(uc.getCouponId());
+            LocalDateTime now2 = LocalDateTime.now();
+            if (coupon == null || coupon.getIsActive() != 1
+                    || now2.isBefore(coupon.getStartTime()) || now2.isAfter(coupon.getEndTime())) {
+                throw new RuntimeException("优惠券已失效");
+            }
+
+            // 4.3 校验最低消费门槛
+            if (sp.getSeckillPrice().compareTo(coupon.getMinOrderAmount()) < 0) {
+                throw new RuntimeException("未达到优惠券使用门槛 ¥" + coupon.getMinOrderAmount());
+            }
+
+            // 4.4 原子核销（WHERE status = 0 防并发重复使用）
+            int marked = userCouponMapper.markUsed(userCouponId);
+            if (marked == 0) {
+                throw new RuntimeException("优惠券核销失败，请重试");
+            }
+            couponMapper.incrementUsedCount(coupon.getId());
+
+            // 4.5 计算折扣金额
+            if (coupon.getType() == 1) {
+                // 满减：直接减免固定金额
+                discountAmount = coupon.getDiscountValue();
+            } else if (coupon.getType() == 2) {
+                // 折扣：seckillPrice × (1 - discountValue)，保留两位小数
+                BigDecimal discount = sp.getSeckillPrice().multiply(
+                        BigDecimal.ONE.subtract(coupon.getDiscountValue())
+                ).setScale(2, RoundingMode.HALF_UP);
+                discountAmount = discount;
+            }
+            // 折扣不可超过实际秒杀价
+            discountAmount = discountAmount.min(sp.getSeckillPrice());
+        }
+
+        // Step 5 ▶ 计算最终金额
+        BigDecimal actualAmount = sp.getSeckillPrice().subtract(discountAmount);
+
+        // Step 6 ▶ 生成全局唯一订单号
         String orderNo = String.valueOf(redisIdWorker.nextId("order"));
         LocalDateTime now = LocalDateTime.now();
 
-        // Step 5 ▶ 组装立即响应 VO（在异步落库完成前客户端可先展示）
+        // Step 7 ▶ 组装立即响应 VO（在异步落库完成前客户端可先展示）
         SeckillOrderVO vo = new SeckillOrderVO();
         vo.setOrderNo(orderNo);
         vo.setProductName(product.getName());
         vo.setCoverUrl(product.getCoverUrl());
         vo.setSeckillPrice(sp.getSeckillPrice());
-        vo.setActualAmount(sp.getSeckillPrice());   // qty=1，暂无优惠券折扣
+        vo.setActualAmount(actualAmount);
         vo.setQuantity(1);
         vo.setCreatedAt(now);
         vo.setStatus(0);                             // 待支付
 
-        // Step 6 ▶ 异步落库（提交到 seckillOrderExecutor 线程池，不阻塞响应）
-        // 注意：OrderAsyncService 是独立 Bean，Spring AOP 代理生效，@Async 正常工作
+        // Step 8 ▶ 异步落库（提交到 seckillOrderExecutor 线程池，不阻塞响应）
         orderAsyncService.saveOrder(orderNo, userId, sp, product, now,
-                dto.getReceiver(), dto.getPhone(), dto.getAddress());
+                dto.getReceiver(), dto.getPhone(), dto.getAddress(),
+                userCouponId, discountAmount, actualAmount);
 
-        log.info("秒杀抢购成功 - orderNo: {}, userId: {}, spId: {}", orderNo, userId, spId);
+        log.info("秒杀抢购成功 - orderNo: {}, userId: {}, spId: {}, discount: {}",
+                orderNo, userId, spId, discountAmount);
         return vo;
     }
 
@@ -207,19 +270,74 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderVO> listMyOrders(int page, int pageSize) {
+    public PageResult<OrderVO> listMyOrders(int page, int pageSize) {
         Long userId = BaseContext.getCurrentId();
         int offset = (page - 1) * pageSize;
-        return orderMapper.selectSeckillOrdersByUserId(userId, pageSize, offset);
+        List<OrderVO> list = orderMapper.selectSeckillOrdersByUserId(userId, pageSize, offset);
+        long total = orderMapper.countSeckillOrdersByUserId(userId);
+        return PageResult.of(list, total);
     }
 
     @Override
-    public int countMyOrders() {
+    public void cancelOrder(String orderNo) {
         Long userId = BaseContext.getCurrentId();
-        return orderMapper.countSeckillOrdersByUserId(userId);
+
+        // 先查询订单（用于取消后的库存/优惠券回补）
+        Order order = orderMapper.selectEntityByOrderNoAndUserId(orderNo, userId);
+        if (order == null) {
+            throw new RuntimeException("订单不存在或无权操作");
+        }
+        if (order.getStatus() != 0) {
+            throw new RuntimeException("只有待支付订单才能取消");
+        }
+
+        // 原子取消（WHERE status = 0 防并发重复操作）
+        int updated = orderMapper.cancelOrder(orderNo, userId);
+        if (updated == 0) {
+            throw new RuntimeException("取消失败，订单状态已变更");
+        }
+
+        // 回补秒杀库存与 Redis
+        restoreStockAndCoupon(order);
+
+        log.info("用户取消订单成功 - orderNo: {}, userId: {}", orderNo, userId);
+    }
+
+    /**
+     * 取消订单后的资源回补：Redis 库存、DB 库存、bought Set、优惠券
+     * 供用户主动取消和定时任务自动取消共用
+     */
+    @Override
+    public void restoreStockAndCoupon(Order order) {
+        Long spId = order.getSeckillProductId();
+        if (spId != null) {
+            // 仅当 Redis key 存在时 INCR，避免 key 过期后被凭空创建错误值
+            String stockKey = SECKILL_STOCK_KEY_PREFIX + spId;
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(stockKey))) {
+                redisTemplate.opsForValue().increment(stockKey);
+            }
+            // 从 bought Set 移除，允许用户重新参与秒杀
+            redisTemplate.opsForSet().remove(
+                    SECKILL_BOUGHT_KEY_PREFIX + spId,
+                    String.valueOf(order.getUserId())
+            );
+            // 同步回补 DB 库存
+            seckillProductMapper.incrementStock(spId);
+        }
+
+        // 恢复优惠券（仅当 user_coupon.status == 1 才回滚，防幂等问题）
+        Long userCouponId = order.getUserCouponId();
+        if (userCouponId != null) {
+            UserCoupon uc = userCouponMapper.selectById(userCouponId);
+            if (uc != null && uc.getStatus() == 1) {
+                userCouponMapper.restoreUserCoupon(userCouponId);
+                couponMapper.decrementUsedCount(uc.getCouponId());
+            }
+        }
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void mockPay(String orderNo) {
         Long userId = BaseContext.getCurrentId();
         int updated = orderMapper.mockPay(orderNo, userId);
@@ -227,6 +345,24 @@ public class OrderServiceImpl implements OrderService {
             // 可能原因：订单不存在、不属于当前用户、状态不是待支付
             throw new RuntimeException("支付失败：订单不存在、无权操作或已支付");
         }
+
+        Order paidOrder = orderMapper.selectEntityByOrderNoAndUserId(orderNo, userId);
+        if (paidOrder == null) {
+            throw new RuntimeException("支付失败：订单不存在或无权操作");
+        }
+
+        int quantity = paidOrder.getQuantity() == null || paidOrder.getQuantity() <= 0
+                ? 1
+                : paidOrder.getQuantity();
+
+        // 支付成功后更新商品销售指标：优先销量+库存同步，库存不足时仍保证销量可统计。
+        int metricUpdated = productMapper.increaseSoldCountAndDecreaseStock(paidOrder.getProductId(), quantity);
+        if (metricUpdated == 0) {
+            productMapper.increaseSoldCountOnly(paidOrder.getProductId(), quantity);
+            log.warn("商品普通库存不足，仅更新销量统计 - orderNo: {}, productId: {}, quantity: {}",
+                    orderNo, paidOrder.getProductId(), quantity);
+        }
+
         log.info("Mock支付成功 - orderNo: {}, userId: {}", orderNo, userId);
     }
 }

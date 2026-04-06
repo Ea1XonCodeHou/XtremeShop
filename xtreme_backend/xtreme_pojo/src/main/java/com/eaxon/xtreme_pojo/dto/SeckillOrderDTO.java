@@ -23,4 +23,10 @@ public class SeckillOrderDTO {
 
     /** 收货地址 */
     private String address;
+
+    /**
+     * 用户优惠券记录 ID（user_coupon.id），不使用时传 null
+     * 下单时由前端选择并传入，后端验证有效性后核销
+     */
+    private Long userCouponId;
 }

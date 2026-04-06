@@ -37,21 +37,27 @@ public class OrderAsyncService {
      * <p>
      * 参数由调用方（OrderServiceImpl）在主线程中已查询并传入，
      * 避免异步线程再次访问 ThreadLocal（BaseContext 在异步线程中无效）。
+     * <p>
+     * 优惠券核销在主线程已完成（markUsed），此处仅写入 userCouponId 做记录关联。
      *
-     * @param orderNo   全局唯一订单号
-     * @param userId    下单用户 ID
-     * @param sp        秒杀商品实体（含 activityId, productId, seckillPrice）
-     * @param product   商品实体（含 merchantId, price, name）
-     * @param createdAt 下单时间（与立即响应 VO 保持一致）
-     * @param receiver  收货人姓名
-     * @param phone     收货手机号
-     * @param address   收货地址
+     * @param orderNo        全局唯一订单号
+     * @param userId         下单用户 ID
+     * @param sp             秒杀商品实体（含 activityId, productId, seckillPrice）
+     * @param product        商品实体（含 merchantId, price, name）
+     * @param createdAt      下单时间（与立即响应 VO 保持一致）
+     * @param receiver       收货人姓名
+     * @param phone          收货手机号
+     * @param address        收货地址
+     * @param userCouponId   已核销的用户优惠券 ID（null = 未使用券）
+     * @param discountAmount 优惠减免金额（已在主线程计算完毕）
+     * @param actualAmount   最终实付金额（已在主线程计算完毕）
      */
     @Async("seckillOrderExecutor")
     public void saveOrder(String orderNo, Long userId,
                           SeckillProduct sp, Product product,
                           LocalDateTime createdAt,
-                          String receiver, String phone, String address) {
+                          String receiver, String phone, String address,
+                          Long userCouponId, BigDecimal discountAmount, BigDecimal actualAmount) {
         try {
             Order order = new Order();
             order.setOrderNo(orderNo);
@@ -59,11 +65,12 @@ public class OrderAsyncService {
             order.setMerchantId(product.getMerchantId());
             order.setProductId(product.getId());
             order.setSeckillProductId(sp.getId());
+            order.setUserCouponId(userCouponId);             // 关联已核销的券（可 null）
             order.setQuantity(1);                            // 秒杀固定 1 件
             order.setOriginalPrice(product.getPrice());      // 原价快照
             order.setSeckillPrice(sp.getSeckillPrice());     // 秒杀价
-            order.setDiscountAmount(BigDecimal.ZERO);        // 暂不支持叠加优惠券
-            order.setActualAmount(sp.getSeckillPrice());     // 实付 = 秒杀价 × 1
+            order.setDiscountAmount(discountAmount);         // 优惠券减免金额
+            order.setActualAmount(actualAmount);             // 实付 = 秒杀价 - 折扣
             order.setReceiver(receiver);
             order.setPhone(phone);
             order.setAddress(address);

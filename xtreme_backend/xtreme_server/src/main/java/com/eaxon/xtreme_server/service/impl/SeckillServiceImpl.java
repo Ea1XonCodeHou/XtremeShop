@@ -2,6 +2,7 @@ package com.eaxon.xtreme_server.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 
@@ -11,12 +12,15 @@ import com.eaxon.xtreme_pojo.dto.SeckillProductDTO;
 import com.eaxon.xtreme_pojo.entity.Product;
 import com.eaxon.xtreme_pojo.entity.SeckillActivity;
 import com.eaxon.xtreme_pojo.entity.SeckillProduct;
+import com.eaxon.xtreme_pojo.vo.SeckillActivityStatsVO;
 import com.eaxon.xtreme_pojo.vo.SeckillActivityVO;
 import com.eaxon.xtreme_pojo.vo.SeckillProductVO;
+import com.eaxon.xtreme_server.mapper.OrderMapper;
 import com.eaxon.xtreme_server.mapper.ProductMapper;
 import com.eaxon.xtreme_server.mapper.SeckillActivityMapper;
 import com.eaxon.xtreme_server.mapper.SeckillProductMapper;
 import com.eaxon.xtreme_server.service.SeckillService;
+import com.eaxon.xtreme_server.utils.CacheClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +30,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SeckillServiceImpl implements SeckillService {
 
+    /** 秒杀商品列表缓存 Key */
+    private static final String CACHE_ACTIVE_PRODUCTS     = "seckill:active_products";
+    /** 秒杀商品详情缓存 Key 前缀 */
+    private static final String CACHE_PRODUCT_PREFIX      = "seckill:product:";
+    /** 列表缓存 TTL：30 秒（上新频率较高，短 TTL 保证数据相对新鲜） */
+    private static final long   CACHE_ACTIVE_TTL_SECONDS  = 30L;
+    /** 单品缓存逻辑过期时长：60 秒 */
+    private static final long   CACHE_PRODUCT_TTL_SECONDS = 60L;
+
     private final SeckillActivityMapper activityMapper;
-    private final SeckillProductMapper seckillProductMapper;
-    private final ProductMapper productMapper;
+    private final SeckillProductMapper  seckillProductMapper;
+    private final ProductMapper         productMapper;
+    private final OrderMapper           orderMapper;
+    private final CacheClient           cacheClient;
 
     @Override
     public void createActivity(SeckillActivityDTO dto) {
@@ -177,11 +192,32 @@ public class SeckillServiceImpl implements SeckillService {
     @Override
     public List<SeckillProductVO> listActiveSeckillProducts() {
         refreshStatus();
-        return seckillProductMapper.selectActiveSeckillProducts();
+        // 缓存穿透防护：空值缓存方案
+        // 缓存的是列表，这里用一个固定 Key，通过 getWithPassThrough 的空 ID 占位语义不重要
+        @SuppressWarnings("unchecked")
+        List<SeckillProductVO> result = (List<SeckillProductVO>) (List<?>) cacheClient.getWithPassThrough(
+                CACHE_ACTIVE_PRODUCTS, "",
+                List.class,
+                ignored -> seckillProductMapper.selectActiveSeckillProducts(),
+                CACHE_ACTIVE_TTL_SECONDS, TimeUnit.SECONDS
+        );
+        return result != null ? result : List.of();
     }
 
     @Override
     public SeckillProductVO getSeckillProductById(Long spId) {
+        // 缓存击穿预防：逻辑过期方案
+        // 如果未在缓存中（未预热），降级直接查 DB
+        SeckillProductVO cached = cacheClient.getWithLogicalExpiry(
+                CACHE_PRODUCT_PREFIX, spId,
+                SeckillProductVO.class,
+                id -> seckillProductMapper.selectActiveById(id),
+                CACHE_PRODUCT_TTL_SECONDS, TimeUnit.SECONDS
+        );
+        if (cached != null) {
+            return cached;
+        }
+        // 未命中（缓存尚未预热）—— 降级查数据库
         return seckillProductMapper.selectActiveById(spId);
     }
 
@@ -189,6 +225,17 @@ public class SeckillServiceImpl implements SeckillService {
     private void refreshStatus() {
         activityMapper.activateStarted();
         activityMapper.deactivateEnded();
+    }
+
+    @Override
+    public SeckillActivityStatsVO getSeckillStats(Long merchantId, Long activityId) {
+        SeckillActivityStatsVO stats = orderMapper.selectSeckillStatsByActivity(merchantId, activityId);
+        if (stats == null) {
+            // 活动不存在时返回空统计对象
+            stats = new SeckillActivityStatsVO();
+            stats.setActivityId(activityId);
+        }
+        return stats;
     }
 
     private String statusText(Integer status) {

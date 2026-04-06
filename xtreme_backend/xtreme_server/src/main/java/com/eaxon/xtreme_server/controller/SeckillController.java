@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eaxon.xtreme_common.result.Result;
 import com.eaxon.xtreme_pojo.dto.SeckillActivityDTO;
 import com.eaxon.xtreme_pojo.dto.SeckillProductDTO;
+import com.eaxon.xtreme_pojo.vo.SeckillActivityStatsVO;
 import com.eaxon.xtreme_pojo.vo.SeckillActivityVO;
 import com.eaxon.xtreme_pojo.vo.SeckillProductVO;
 import com.eaxon.xtreme_server.context.BaseContext;
@@ -74,5 +75,12 @@ public class SeckillController {
         Long merchantId = BaseContext.getCurrentId();
         seckillService.removeSeckillProduct(merchantId, activityId, spId);
         return Result.success();
+    }
+
+    /** 查询本商家在指定秒杀活动中的订单汇总统计（按活动维度） */
+    @GetMapping("/activities/{activityId}/stats")
+    public Result<SeckillActivityStatsVO> getSeckillStats(@PathVariable Long activityId) {
+        Long merchantId = BaseContext.getCurrentId();
+        return Result.success(seckillService.getSeckillStats(merchantId, activityId));
     }
 }

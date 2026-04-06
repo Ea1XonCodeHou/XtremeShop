@@ -1,9 +1,9 @@
 package com.eaxon.xtreme_server.service;
 
-import java.util.List;
-
 import com.eaxon.xtreme_pojo.dto.SeckillOrderDTO;
+import com.eaxon.xtreme_pojo.entity.Order;
 import com.eaxon.xtreme_pojo.vo.OrderVO;
+import com.eaxon.xtreme_pojo.vo.PageResult;
 import com.eaxon.xtreme_pojo.vo.SeckillOrderVO;
 
 public interface OrderService {
@@ -28,18 +28,23 @@ public interface OrderService {
     OrderVO getOrderByNo(String orderNo);
 
     /**
-     * 分页查询当前用户的秒杀订单列表（最新在前）
+     * 分页查询当前用户的秒杀订单列表（最新在前），返回 { list, total } 格式
      *
      * @param page     页码（从 1 开始）
      * @param pageSize 每页条数
-     * @return 订单 VO 列表
+     * @return 分页结果，total 为该用户秒杀订单总数
      */
-    List<OrderVO> listMyOrders(int page, int pageSize);
+    PageResult<OrderVO> listMyOrders(int page, int pageSize);
 
     /**
-     * 查询当前用户的秒杀订单总数（配合分页使用）
+     * 用户主动取消待支付订单
+     * <p>
+     * 仅允许取消 status = 0（待支付）的本人订单，取消后回补 Redis + DB 库存，
+     * 从 bought Set 移除记录（允许用户重新参与秒杀），并恢复已使用的优惠券。
+     *
+     * @param orderNo 订单号
      */
-    int countMyOrders();
+    void cancelOrder(String orderNo);
 
     /**
      * Mock 支付接口
@@ -61,4 +66,13 @@ public interface OrderService {
      * @param spId 秒杀商品 ID
      */
     void warmUpSeckillStock(Long spId);
+
+    /**
+     * 取消订单后资源回补：Redis 库存、DB 库存、bought Set、优惠券
+     * <p>
+     * 供用户主动取消（cancelOrder）及定时任务自动取消共用。
+     *
+     * @param order 已取消的订单实体（需包含 spId、userCouponId 等字段）
+     */
+    void restoreStockAndCoupon(Order order);
 }

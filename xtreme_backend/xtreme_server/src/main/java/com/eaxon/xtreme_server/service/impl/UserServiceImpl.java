@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 
 import com.eaxon.xtreme_common.utils.PasswordUtils;
 import com.eaxon.xtreme_pojo.dto.UserLoginDTO;
+import com.eaxon.xtreme_pojo.dto.UserProfileDTO;
 import com.eaxon.xtreme_pojo.dto.UserRegisterDTO;
 import com.eaxon.xtreme_pojo.entity.User;
 import com.eaxon.xtreme_pojo.vo.UserLoginVO;
+import com.eaxon.xtreme_pojo.vo.UserProfileVO;
 import com.eaxon.xtreme_server.mapper.UserMapper;
 import com.eaxon.xtreme_server.service.UserService;
 
@@ -112,5 +114,32 @@ public class UserServiceImpl implements UserService {
         if (userIdStr != null && !userIdStr.isBlank()) {
             redisTemplate.delete(userSessionKey(Long.parseLong(userIdStr)));
         }
+    }
+
+    @Override
+    public UserProfileVO getProfile(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        UserProfileVO vo = new UserProfileVO();
+        vo.setId(user.getId());
+        vo.setPhone(user.getPhone());
+        vo.setUsername(user.getUsername());
+        vo.setCreatedAt(user.getCreatedAt());
+        return vo;
+    }
+
+    @Override
+    public void updateProfile(Long userId, UserProfileDTO dto) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            user.setUsername(dto.getUsername());
+        }
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
     }
 }
