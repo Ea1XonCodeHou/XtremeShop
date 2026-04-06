@@ -4,14 +4,16 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/xtreme_shop?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    # DB_HOST 默认 127.0.0.1（IDEA 本地运行），容器化时传入 DB_HOST=mysql（compose service 名）
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:3306/xtreme_shop?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
     redis:
-      host: 127.0.0.1
+      # REDIS_HOST 默认 127.0.0.1（IDEA 本地运行），容器化时传入 REDIS_HOST=redis（compose service 名）
+      host: ${REDIS_HOST:127.0.0.1}
       port: 6379
       database: 10
       lettuce:
